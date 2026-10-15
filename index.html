@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head class="header">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+    <title>Pu Huimin</title>
+    <!-- 可爱字体：站酷快乐体（中文）+ Fredoka（英文/数字），国内镜像；离线时回退系统圆润字体 -->
+    <link rel="preconnect" href="https://fonts.loli.net" crossorigin>
+    <link rel="stylesheet" href="https://fonts.loli.net/css2?family=ZCOOL+KuaiLe&family=Fredoka:wght@500;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 第一页背景：半透明二次元女孩 -->
+    <div class="bg-girl" aria-hidden="true"></div>
+
+    <div class="name">
+        <p>你好，蒲慧敏</p>
+    </div>
+    <div class="blessings">
+        <p>“从今把定春风笑，且作人间长寿仙”</p>
+    </div>
+    <div class="tip">
+        <p class="birthday-tip"></p>
+    </div>
+
+    <div class="surprise">
+        <p class="surprise-msg"></p>
+        <button class="surprise-btn" type="button">点击打开惊喜</button>
+    </div>
+
+    <div class="nowtime">
+        <p class="now-time-text"></p>
+    </div>
+
+    <!-- 第二页背景音乐：用户提供的 mp3 -->
+    <audio id="bgm" src="Untitled.mp3" preload="auto"></audio>
+
+    <!-- 惊喜页：第二页（密集祝福卡片 10 秒 + 半透倒计时）→ 第三页（9:16 视频），点击任意处返回 -->
+    <div class="surprise-page" id="surprisePage">
+        <!-- 第二页：全屏密集生日祝福 -->
+        <div class="cards-stage" id="cardsStage"></div>
+
+        <!-- 10s 半透明倒计时 -->
+        <div class="countdown" id="countdown"></div>
+
+        <!-- 第三页：星空背景 + 9:16 视频（保留原声，无进度条），上下为标题 -->
+        <div class="video-stage" id="videoStage">
+            <div class="stars" id="stars"></div>
+            <div class="video-title video-title-top">生日快乐</div>
+            <video class="firework-video" id="fireworkVideo"
+                   src="B站一键去水印.mp4"
+                   preload="metadata"
+                   playsinline webkit-playsinline x5-playsinline
+                   disablePictureInPicture
+                   controlslist="nodownload nofullscreen noremoteplayback"
+                   loop></video>
+            <div class="video-title video-title-bottom">Happy Birthday</div>
+            <div class="back-hint">轻触屏幕返回</div>
+        </div>
+    </div>
+
+    <script>
+        const startTime = new Date('2009-10-15T00:00:00');
+        const nowTimeDom = document.querySelector('.now-time-text');
+
+        function calcTimeDiff() {
+            const now = new Date();
+            const diffMs = now - startTime;
+            const totalSec = Math.floor(diffMs / 1000);
+            const day = Math.floor(totalSec / (60 * 60 * 24));
+            const hour = Math.floor((totalSec % (60 * 60 * 24)) / (60 * 60));
+            const min = Math.floor((totalSec % (60 * 60)) / 60);
+            const sec = totalSec % 60;
+            return `你已经来到世界上${day}天${hour}小时${min}分钟${sec}秒`;
+        }
+
+        function updateText() {
+            const timeStr = calcTimeDiff();
+            nowTimeDom.innerText = timeStr;
+        }
+        updateText();
+        setInterval(updateText, 1000);
+
+        const BIRTH_MONTH = 10;
+        const BIRTH_DAY = 15;
+
+        function calcBirthdayCountdown() {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            let targetBirthday = new Date(now.getFullYear(), BIRTH_MONTH - 1, BIRTH_DAY);
+            targetBirthday.setHours(0, 0, 0, 0);
+
+            if (targetBirthday < now) {
+                targetBirthday = new Date(now.getFullYear() + 1, BIRTH_MONTH - 1, BIRTH_DAY);
+            }
+
+            const diffMs = targetBirthday - now;
+            const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) {
+                return "今天就是你的生日！\nHappy Birthday to you";
+            } else {
+                return `距离你的生日还有 ${diffDays} 天`;
+            }
+        }
+
+        function renderBirthdayText() {
+            const tipDom = document.querySelector('.birthday-tip');
+            if (tipDom) tipDom.textContent = calcBirthdayCountdown();
+        }
+        renderBirthdayText();
+        setInterval(renderBirthdayText, 24 * 60 * 60 * 1000);
+
+        // 惊喜按钮：仅生日当天可打开
+        function isBirthdayToday() {
+            const now = new Date();
+            return now.getMonth() + 1 === BIRTH_MONTH && now.getDate() === BIRTH_DAY;
+        }
+
+        function renderSurprise() {
+            const msgDom = document.querySelector('.surprise-msg');
+            const btnDom = document.querySelector('.surprise-btn');
+            if (isBirthdayToday()) {
+                msgDom.textContent = '生日快乐！这里有一份专属惊喜，点开看看吧～';
+                btnDom.style.display = 'inline-block';
+            } else {
+                msgDom.textContent = '惊喜还在悄悄准备中，生日当天才能打开哟，到时候再来吧～';
+                btnDom.style.display = 'none';
+            }
+        }
+        renderSurprise();
+
+        // 预览开关：地址栏加 ?preview 可提前查看惊喜效果（生日当天逻辑不受影响）
+        if (new URLSearchParams(location.search).has('preview')) {
+            document.querySelector('.surprise-msg').textContent = '预览模式：惊喜效果抢先看～';
+            document.querySelector('.surprise-btn').style.display = 'inline-block';
+        }
+
+        // ============ 惊喜页演出 ============
+        const surprisePage = document.getElementById('surprisePage');
+        const cardsStage = document.getElementById('cardsStage');
+        const countdownEl = document.getElementById('countdown');
+        const videoStage = document.getElementById('videoStage');
+        const starsEl = document.getElementById('stars');
+        const fireworkVideo = document.getElementById('fireworkVideo');
+        const bgm = document.getElementById('bgm');
+
+        // 60 条祝福语，保证密集铺满全屏
+        const WISHES = [
+            '生日快乐', 'Happy Birthday', 'Happy 17th', '平安喜乐',
+            '万事胜意', '前程似锦', '岁岁年年', '心想事成',
+            '永远开心', '温柔以待', '17岁闪光', '愿望成真',
+            '笑容常在', '天天开心', '身体健康', '学业进步',
+            '未来可期', '眼里有光', '心中有爱', '所愿皆得',
+            '所行坦途', '多喜乐', '长安宁', '岁岁欢愉',
+            '年年胜意', '好事连连', '好运加满', '可爱万岁',
+            '青春正好', '梦想成真', '无忧无虑', '鲜花簇拥',
+            '星光环绕', '温柔坚定', '勇敢自由', '温暖有趣',
+            '一生被爱', '永远少女', '闪闪发光', '你最棒呀',
+            '生日大快乐', '许个愿吧', '开心冒泡', '幸福永远',
+            '好运连年', '蛋糕超甜', '你超可爱', '天天好心情',
+            '被爱包围', '元气满满', '笑口常开', '万事顺意',
+            '步步高升', '锦绣前程', '甜甜蜜蜜', '吉星高照',
+            '福星临门', '喜乐长安', '一生顺遂', '快乐万岁'
+        ];
+        const CARD_COLORS = ['#FFF4E0', '#FFE8D6', '#FFF0F0', '#FDECC8', '#FFE3EC', '#FBEFD6'];
+        const CARD_TEXT = ['#7A3E1D', '#8A4A24', '#A8372A', '#8A5A18', '#B23A66', '#6E4A1F'];
+
+        let switchTimer = null;
+        let cdInterval = null;
+
+        // 构建全屏密集祝福卡片：按屏幕尺寸自适应网格（手机 5 列 / 桌面 8 列），
+        // 密密麻麻铺满全屏；外层飞入落位，内层在整个 10 秒内持续漂浮
+        function buildCards() {
+            cardsStage.innerHTML = '';
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const isMobile = vw < 480;
+            const cols = isMobile ? 5 : 8;
+            const margin = isMobile ? 8 : 24;          // px，网格距屏幕边缘
+            const gapY = isMobile ? 9 : 18;            // px，行间距
+            const floatPad = isMobile ? 16 : 26;       // px，给漂浮预留的安全边距
+
+            // 探针：禁用动画后测量一张卡片的真实尺寸
+            const probe = document.createElement('div');
+            probe.className = 'b-card';
+            probe.style.animation = 'none';
+            probe.style.visibility = 'hidden';
+            const probeInner = document.createElement('div');
+            probeInner.className = 'b-card-inner';
+            probeInner.textContent = '生日快乐';
+            probe.appendChild(probeInner);
+            cardsStage.appendChild(probe);
+            const prect = probeInner.getBoundingClientRect();
+            const cw = prect.width, ch = prect.height;
+            cardsStage.removeChild(probe);
+
+            const colW = (vw - margin * 2) / cols;
+            const rows = Math.max(1, Math.floor((vh - margin * 2) / (ch + gapY)));
+            const count = Math.min(cols * rows, 160);
+
+            // 洗牌祝福语顺序，数量超出词库时循环复用
+            const order = WISHES.map(function (_, i) { return i; });
+            for (let i = order.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const t = order[i]; order[i] = order[j]; order[j] = t;
+            }
+
+            for (let k = 0; k < count; k++) {
+                const i = order[k % order.length];
+                const card = document.createElement('div');
+                card.className = 'b-card';
+                const inner = document.createElement('div');
+                inner.className = 'b-card-inner';
+                inner.textContent = WISHES[i];
+                inner.style.setProperty('--bg', CARD_COLORS[i % CARD_COLORS.length]);
+                inner.style.setProperty('--fg', CARD_TEXT[i % CARD_TEXT.length]);
+                card.appendChild(inner);
+                cardsStage.appendChild(card);
+
+                const rotate = -8 + Math.random() * 16;        // deg，落位基准角度
+                const scale = 0.85 + Math.random() * 0.2;
+
+                // 网格锚点 + 随机抖动，再夹到安全范围内（含漂浮余量）
+                const col = k % cols, row = Math.floor(k / cols);
+                const baseX = margin + (col + 0.5) * colW;
+                const baseY = margin + (row + 0.5) * (ch + gapY);
+                const minX = cw / 2 + floatPad, maxX = vw - cw / 2 - floatPad;
+                const minY = ch / 2 + floatPad, maxY = vh - ch / 2 - floatPad;
+                let left = baseX + (Math.random() - 0.5) * colW * 0.3;
+                let top = baseY + (Math.random() - 0.5) * (ch + gapY) * 0.3;
+                left = Math.max(minX, Math.min(maxX, left));
+                top = Math.max(minY, Math.min(maxY, top));
+
+                const delay = Math.random() * 0.9;            // s，卡片快速飞入铺满
+                const flyRot = -180 + Math.random() * 360;
+                // 从屏幕外侧随机方向飞入（vmin 单位，横竖屏都能保证在屏外）
+                const edge = Math.floor(Math.random() * 4);
+                const dist = 150;
+                let fx = 0, fy = 0;
+                if (edge === 0) { fx = (Math.random() - 0.5) * dist; fy = -dist; }
+                else if (edge === 1) { fx = dist; fy = (Math.random() - 0.5) * dist; }
+                else if (edge === 2) { fx = (Math.random() - 0.5) * dist; fy = dist; }
+                else { fx = -dist; fy = (Math.random() - 0.5) * dist; }
+
+                // 持续漂浮参数：随机漂移幅度、摇摆角度、周期、负延迟打散相位
+                const drift = isMobile ? 11 : 17;
+                const fx1 = (Math.random() * 2 - 1) * drift;
+                const fy1 = (Math.random() * 2 - 1) * drift * 0.85;
+                const rr = (Math.random() * 2 - 1) * 7;
+                const fd = 3.4 + Math.random() * 2.8;
+                const fdelay = -Math.random() * fd;
+
+                card.style.setProperty('--left', left + 'px');
+                card.style.setProperty('--top', top + 'px');
+                card.style.setProperty('--r', rotate + 'deg');
+                card.style.setProperty('--s', scale);
+                card.style.setProperty('--d', delay + 's');
+                card.style.setProperty('--fr', flyRot + 'deg');
+                card.style.setProperty('--fx', fx + 'vw');
+                card.style.setProperty('--fy', fy + 'vh');
+                inner.style.setProperty('--fx1', fx1 + 'px');
+                inner.style.setProperty('--fy1', fy1 + 'px');
+                inner.style.setProperty('--rr', rr + 'deg');
+                inner.style.setProperty('--fd', fd + 's');
+                inner.style.setProperty('--fdelay', fdelay + 's');
+            }
+        }
+
+        // 构建第三页星空：130 颗随机闪烁的星星（全屏分布，被视频遮挡的中部不可见）
+        function buildStars() {
+            starsEl.innerHTML = '';
+            const total = 130;
+            for (let i = 0; i < total; i++) {
+                const s = document.createElement('i');
+                s.className = 'star';
+                s.style.left = (Math.random() * 100) + '%';
+                s.style.top = (Math.random() * 100) + '%';
+                const size = 1 + Math.random() * 2.2;
+                s.style.width = size + 'px';
+                s.style.height = size + 'px';
+                s.style.animationDelay = (Math.random() * 3) + 's';
+                s.style.animationDuration = (1.8 + Math.random() * 2.4) + 's';
+                starsEl.appendChild(s);
+            }
+        }
+
+        // 倒计时显示并触发 pop 动画
+        function tickCountdown(remain) {
+            countdownEl.textContent = remain + 's';
+            countdownEl.classList.add('show');
+            countdownEl.classList.remove('pop');
+            void countdownEl.offsetWidth;
+            countdownEl.classList.add('pop');
+        }
+
+        // 启动 10s 半透明倒计时
+        function startCountdown() {
+            clearInterval(cdInterval);
+            let remain = 10;
+            tickCountdown(remain);
+            cdInterval = setInterval(function () {
+                remain--;
+                if (remain <= 0) {
+                    clearInterval(cdInterval);
+                    return;
+                }
+                tickCountdown(remain);
+            }, 1000);
+        }
+
+        // 倒计时结束 → 第三页：暂停 mp3，播放视频（保留原声）
+        function enterVideoStage() {
+            clearInterval(cdInterval);
+            countdownEl.classList.remove('show');
+            surprisePage.classList.add('show-video');
+            bgm.pause();
+            fireworkVideo.currentTime = 0;
+            const playPromise = fireworkVideo.play();
+            if (playPromise) playPromise.catch(function () { });
+        }
+
+        function openSurprise() {
+            clearTimeout(switchTimer);
+            clearInterval(cdInterval);
+            fireworkVideo.pause();
+            surprisePage.classList.remove('show-video');
+            surprisePage.classList.add('active');
+            buildCards();   // 页面显示后才能测量卡片真实尺寸
+            startCountdown();
+            // 自动播放音乐（点击按钮属于用户手势，可自动播放）
+            bgm.currentTime = 0;
+            const playPromise = bgm.play();
+            if (playPromise) playPromise.catch(function () { });
+            // 10 秒密集祝福后切换视频页
+            switchTimer = setTimeout(enterVideoStage, 10000);
+        }
+
+        function closeSurprise() {
+            clearTimeout(switchTimer);
+            clearInterval(cdInterval);
+            surprisePage.classList.remove('active');
+            surprisePage.classList.remove('show-video');
+            countdownEl.classList.remove('show');
+            bgm.pause();
+            bgm.currentTime = 0;
+            fireworkVideo.pause();
+            fireworkVideo.currentTime = 0;
+        }
+
+        document.querySelector('.surprise-btn').addEventListener('click', openSurprise);
+        surprisePage.addEventListener('click', closeSurprise);
+
+        // 禁止视频右键/长按菜单，避免出现下载、画中画等调节入口
+        fireworkVideo.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+        buildStars();
+    </script>
+</body>
+</html>

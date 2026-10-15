@@ -1,0 +1,12 @@
+# 本地调试缓存（Cloudflare Wrangler）
+.wrangler/
+
+# 原版视频备份（422MB，超过 GitHub 限制，仅保留在本地）
+原版视频备份.mp4
+
+# 压缩临时文件
+compressed_tmp.mp4
+
+# 系统文件
+Thumbs.db
+Desktop.ini

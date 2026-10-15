@@ -1,0 +1,356 @@
+/* ===== 可爱字体栈：有网用站酷快乐体/Fredoka，离线回退系统圆润字体 ===== */
+:root{
+    --cute-font: 'ZCOOL KuaiLe', 'Fredoka', 'Comic Sans MS', 'Chalkboard SE',
+                  'YouYuan', '幼圆', 'STHupo', '华文琥珀', 'Microsoft YaHei', sans-serif;
+}
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+p{
+    margin: 0;
+}
+html,body{
+    color: #333;
+    background-color: #C95C2D;
+    width: 100%;
+    height: 100%;
+    -webkit-text-size-adjust: 100%;
+    font-family: var(--cute-font);
+    overflow:hidden;
+    touch-action: none;
+}
+
+/* ===== 第一页背景：半透明二次元女孩 ===== */
+.bg-girl{
+    position: fixed;
+    inset: 0;
+    background: url("anime-girl.png") center bottom / auto 100% no-repeat;
+    opacity: 0.18;
+    z-index: 0;
+    pointer-events: none;
+}
+.name,.blessings,.tip,.surprise,.nowtime{
+    position: relative;
+    z-index: 1;
+}
+
+.name{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 1;
+    font-size: clamp(48px, 13vw, 100px);
+    font-family: var(--cute-font);
+    color: #502F17;
+}
+.blessings{
+    display: flex;
+    flex-direction: column;
+    justify-content:center;
+    align-items: center;
+    width: 100%;
+    height: auto;
+    font-size:22px ;
+    font-family: var(--cute-font);
+    color: #6A5038;
+    transform: translateY(20px);
+}
+.time{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: auto;
+    font-size: 15px;
+    color: #846B4F;
+
+}
+.tip{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: auto;
+    font-size: 25px;
+    font-family: var(--cute-font);
+    transform: translateY(150px);
+}
+.nowtime{
+    display: flex-end;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 80px;
+    font-size: 15px;
+    transform: translateY(350px) translateX(40px);
+}
+.surprise{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    font-size: 22px;
+    font-family: var(--cute-font);
+    color: #6A5038;
+    transform: translateY(250px) translateX(10px);
+    gap: 24px;
+}
+.surprise-btn{
+    display: none;
+    padding: 10px 42px;
+    font-size: 22px;
+    font-family: var(--cute-font);
+    color: #502F17;
+    background-color: transparent;
+    border: 2px solid #502F17;
+    border-radius: 30px;
+    cursor: pointer;
+}
+.surprise-btn:active{
+    background-color: #502F17;
+    color: #C95C2D;
+}
+
+/* ===== 惊喜页容器 ===== */
+.surprise-page{
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #C95C2D;
+    z-index: 999;
+    overflow: hidden;
+}
+.surprise-page.active{
+    display: block;
+}
+
+/* --- 第二页：全屏密集生日祝福卡片 --- */
+.cards-stage{
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity .4s ease;
+}
+.surprise-page.active .cards-stage{
+    opacity: 1;
+}
+.surprise-page.show-video .cards-stage{
+    opacity: 0;
+    transition: opacity .7s ease;
+    pointer-events: none;
+}
+/* 外层：只负责从屏幕外飞入并落位，落位后保持静止姿态 */
+.b-card{
+    position: absolute;
+    left: var(--left);
+    top: var(--top);
+    opacity: 0;
+    transform: translate(calc(var(--fx) - 50%), calc(var(--fy) - 50%)) scale(.2) rotate(var(--fr));
+    animation: cardFly .9s cubic-bezier(.18, .9, .28, 1.15) var(--d) both;
+}
+@keyframes cardFly{
+    to{
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(var(--s)) rotate(var(--r));
+    }
+}
+/* 内层：卡片视觉样式 + 全程持续漂浮（10 秒内不停），每张卡片轨迹/周期/相位随机 */
+.b-card-inner{
+    display: block;
+    font-family: "Stkaiti","Kaiti","楷体", serif;
+    font-weight: bold;
+    font-size: clamp(11px, 2.7vw, 19px);
+    line-height: 1.25;
+    padding: clamp(4px, 1.1vw, 9px) clamp(8px, 2.2vw, 15px);
+    border-radius: 10px;
+    white-space: nowrap;
+    border: 2px solid rgba(255, 255, 255, .6);
+    box-shadow: 0 6px 18px rgba(80, 30, 10, .28);
+    background-color: var(--bg);
+    color: var(--fg);
+    animation-name: cardFloat;
+    animation-timing-function: ease-in-out;
+    animation-duration: var(--fd);
+    animation-delay: var(--fdelay);
+    animation-iteration-count: infinite;
+    backface-visibility: hidden;
+}
+@keyframes cardFloat{
+    0%{
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25%{
+        transform: translate(var(--fx1), var(--fy1)) rotate(var(--rr));
+    }
+    50%{
+        transform: translate(calc(var(--fx1) * -.55), calc(var(--fy1) * 1.15)) rotate(calc(var(--rr) * -.7));
+    }
+    75%{
+        transform: translate(calc(var(--fx1) * .85), calc(var(--fy1) * -.75)) rotate(calc(var(--rr) * .55));
+    }
+    100%{
+        transform: translate(0, 0) rotate(0deg);
+    }
+}
+
+/* --- 10s 半透明倒计时（居中大号数字） --- */
+.countdown{
+    display: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 6;
+    font-family: 'Fredoka', var(--cute-font);
+    font-weight: 700;
+    font-size: clamp(96px, 34vw, 280px);
+    line-height: 1;
+    color: rgba(255, 255, 255, .38);
+    text-shadow: 0 0 26px rgba(255, 255, 255, .28);
+    pointer-events: none;
+    user-select: none;
+}
+.countdown.show{
+    display: block;
+}
+.countdown.pop{
+    animation: cdPop 1s ease both;
+}
+@keyframes cdPop{
+    0%{ transform: translate(-50%, -50%) scale(1.3); }
+    100%{ transform: translate(-50%, -50%) scale(1); }
+}
+
+/* --- 第三页：星空背景 + 9:16 视频 --- */
+.video-stage{
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .9s ease .1s;
+    background: radial-gradient(circle at 50% 42%, #1a1545 0%, #0d0a28 55%, #05040f 100%);
+    overflow: hidden;
+}
+.surprise-page.show-video .video-stage{
+    opacity: 1;
+}
+
+/* 星星 */
+.stars{
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+.star{
+    position: absolute;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 6px 1px rgba(255, 255, 255, .85);
+    opacity: .6;
+    animation-name: starTwinkle;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+}
+@keyframes starTwinkle{
+    0%, 100%{ opacity: .15; transform: scale(.6); }
+    50%{ opacity: 1; transform: scale(1.2); }
+}
+
+/* 9:16 竖屏显示区域：宽度铺满（瘦长竖屏产生上下空白），横屏时自动以高度为准。
+   视频本身是 16:9 横屏素材，object-fit:cover 裁切左右、铺满整个 9:16 框，无黑边；
+   框外上下区域透出星空与标题 */
+.firework-video{
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 2;
+    width: min(100%, calc(100vh * 9 / 16));
+    aspect-ratio: 9 / 16;
+    object-fit: cover;
+    background: #000;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+}
+.surprise-page.show-video .firework-video{
+    animation: videoIn 1s ease .25s both;
+}
+@keyframes videoIn{
+    from{ opacity: 0; transform: translate(-50%, -50%) scale(.9); }
+    to{ opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* 上下标题 */
+.video-title{
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+    color: #fff;
+}
+/* 竖屏 9:16 框内，16:9 视频画面约在屏幕 40%~60% 高度，标题置于上下空白中部 */
+.video-title-top{
+    top: 15%;
+    font-family: var(--cute-font);
+    font-size: clamp(30px, 8vh, 54px);
+    letter-spacing: .18em;
+    text-shadow: 0 0 10px rgba(255, 255, 255, .9),
+                 0 0 28px rgba(255, 170, 215, .9),
+                 0 0 48px rgba(255, 110, 190, .6);
+}
+.video-title-bottom{
+    bottom: 11%;
+    font-family: 'Fredoka', var(--cute-font);
+    font-weight: 700;
+    font-size: clamp(22px, 6vh, 42px);
+    letter-spacing: .14em;
+    text-shadow: 0 0 10px rgba(255, 255, 255, .9),
+                 0 0 26px rgba(170, 210, 255, .9),
+                 0 0 46px rgba(120, 160, 255, .6);
+}
+.surprise-page.show-video .video-title-top{
+    animation: titleIn .9s ease .5s both;
+}
+.surprise-page.show-video .video-title-bottom{
+    animation: titleIn .9s ease .85s both;
+}
+@keyframes titleIn{
+    from{ opacity: 0; }
+    to{ opacity: 1; }
+}
+
+/* 返回提示：放在屏幕最底部 */
+.back-hint{
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 3%);
+    z-index: 3;
+    text-align: center;
+    color: rgba(255, 255, 255, .6);
+    font-family: var(--cute-font);
+    font-size: 13px;
+    letter-spacing: .3em;
+    opacity: 0;
+    pointer-events: none;
+}
+.surprise-page.show-video .back-hint{
+    animation: hintIn 1s ease 2s both;
+}
+@keyframes hintIn{
+    to{ opacity: 1; }
+}
